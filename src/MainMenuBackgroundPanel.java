@@ -2,9 +2,9 @@ import java.awt.Graphics;
 import java.awt.Image;
 import javax.swing.JPanel;
 
-public class BackgroundPanel extends JPanel {
+public class MainMenuBackgroundPanel extends JPanel {
     Image im;
-    public BackgroundPanel(Image im){
+    public MainMenuBackgroundPanel(Image im){
         this.im = im;
         this.setOpaque(false);
     }

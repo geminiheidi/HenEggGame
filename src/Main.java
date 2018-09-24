@@ -1,32 +1,22 @@
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
-public class Main {
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+
+public class Main{
     public static void main(String[] args){
+        String userName = null;
         try{
-            String userName = JOptionPane.showInputDialog("Please enter your name!");
-            String namePath = "./data/userName.txt";
-            
+            userName = (String) JOptionPane.showInputDialog(null,"Please enter your name!", "Welcome to Egg Game", PLAIN_MESSAGE, ConstantDesignSize.eggIcon, null,null);
             while(userName == null || userName.equals("")) {
             	if (userName.equals("")) {
-            		JOptionPane.showConfirmDialog(null, "Must enter an user name!");
-            		userName = JOptionPane.showInputDialog("Please enter your name!");
+            		JOptionPane.showConfirmDialog(null, "Must enter an user name!", "Warning!", PLAIN_MESSAGE, JOptionPane.OK_OPTION, ConstantDesignSize.eggIcon);
+            		userName = (String) JOptionPane.showInputDialog(null, "Please enter your name!", "Welcome to Egg Game", PLAIN_MESSAGE, ConstantDesignSize.eggIcon, null, null);
             	}
             }
-            if (userName != null) {
-            	File nameFile = new File(namePath);
-                FileWriter nameWriter = new FileWriter(nameFile, true);
-                BufferedWriter bw = new BufferedWriter(nameWriter);
-                bw.newLine();
-                bw.write(userName);
-                bw.flush();
-                bw.close();
-                new MainFrame();
-            }
+            Player.getInstance().initialize(userName);
+            new MainMenuFrame();
         }catch(Exception e){
             System.out.println(e.getMessage());
-        } 
+        }
     }
 }

@@ -1,61 +1,23 @@
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
-import javax.swing.JOptionPane;
 
-class EggData{
-	boolean eggType;
-	double eggPos;
-	double eggVelocity;
-	EggData(){
-		Random rand = new Random();
-		int  n = rand.nextInt(10) + 1;
-		if(n <= 1) {
-			eggType = false;
-		}
-		else {
-			eggType = true;
-		}
-		eggPos = 0;
-		eggVelocity = 20; //5 secs from top to bottom 100/5
-	}
-}
-
-class PlayerStatus{
-	int score;
-	int livesRemaining;
-	PlayerStatus(){
-		livesRemaining = 3;
-		score = 0;
-	}
-}
-
-class Basket{
-	double basketPos;
-	double basketVelocity;
-	Basket(){
-		basketPos = 0;
-		basketVelocity = 25; //4 secs from top to bottom 100/4 = 25
-	}
-}
-
-public class BoardStatus {
+public class GameStatus {
 	
 	ArrayList<ArrayList<EggData>> eggs = new ArrayList<ArrayList<EggData>>();//will hold 3 arrays which holds eggs of each hen
 	ArrayList<Double> nextEggFallTime = new ArrayList<Double>();	
 	Double time = 0.1; //seconds
 	Basket basket;
-	PlayerStatus player;
+	Random rand;
+	int lastEggFallIndex;
 	
-	BoardStatus(){
-		basket = new Basket();
-		player = new PlayerStatus();
-//		basketPos = 0;//-1,0,1	
-		nextEggFallTime.add(2.0);
-		nextEggFallTime.add(1.0);
-		nextEggFallTime.add(3.0);
+	GameStatus(){
+		basket = new Basket(time);
+		rand = new Random();
+		nextEggFallTime.add(rand.nextInt(10 ) + 3.0);
+		nextEggFallTime.add(rand.nextInt(5) * 1.0);
+		nextEggFallTime.add(rand.nextInt(10) + 3.0);
+		lastEggFallIndex = 0;
 		
 		for(int i = 0; i < 3; i++) {
 			ArrayList<EggData> egg = new ArrayList<EggData>();
@@ -63,18 +25,17 @@ public class BoardStatus {
 		}
 	}
 	
-	void decideNextEggFallingTime(int j) { 
-		Random rand = new Random();
-		int  n = rand.nextInt(10) + 15;
-		
-		nextEggFallTime.set(j, n*1.0);
+	void decideNextEggFallingTime(int henIndex) {
+		int  n = rand.nextInt(7) + 0;  // minimum 3 seconds between 2 consecutive eggs
+		nextEggFallTime.set(henIndex, nextEggFallTime.get(lastEggFallIndex) + 3 + n * 1.0);
+		lastEggFallIndex = henIndex;
 	}
 	
 	void checkIfTimeToReleaseEgg() {
 		for(int i = 0; i < nextEggFallTime.size(); i++) {
 			if(nextEggFallTime.get(i) <= 0) {
-				eggs.get(i).add(new EggData());
-//				nextEggFallTime.set(i, 1.0 * (i + 1));
+				SoundEffect.HEN.play();
+				eggs.get(i).add(new EggData(time));
 				decideNextEggFallingTime(i);
 			}
 		}
@@ -97,28 +58,25 @@ public class BoardStatus {
 				b.eggPos = b.eggPos + (b.eggVelocity * time);
 			}
 		}
-//		removes();
 	}
 	
 	void moveBasket(int keyPressStatus)
 	{
 		//basketPos should be within 0 and 100. if 1, moves right. if -1 moves left
 		basket.basketPos = 
-				Math.max(0.0, Math.min(100.0, basket.basketPos + (keyPressStatus * basket.basketVelocity * time)));
+				Math.max(0.0, Math.min(85.0, basket.basketPos + (keyPressStatus * basket.basketVelocity * time)));
 	}
 	
 	void checkEggCaught() {
 		for(Iterator<EggData> i = eggs.get(0).iterator(); i.hasNext();) {
 			EggData pos = i.next();
-//			System.out.println("egg and basket pos " + pos.eggPos + " " + basket.basketPos);
 			if(pos.eggPos >= 95 && (basket.basketPos >= 5 && basket.basketPos < 11)){
 				if(pos.eggType == true) {
-					System.out.println("caught egg and basket pos " + pos.eggPos + " " + basket.basketPos);
-					player.score = player.score + 5;
+					Player.getInstance().setScore(Player.getInstance().getScore() + 5);
+					SoundEffect.DINGDONG.play();
 				}
 				else {
-					player.score = player.score - 5;
-					
+					Player.getInstance().setLivesRemaining(Player.getInstance().getLivesRemaining() - 1);
 				}
 				i.remove();
 			}
@@ -127,31 +85,26 @@ public class BoardStatus {
 		
 		for(Iterator<EggData> i = eggs.get(1).iterator(); i.hasNext();) {
 			EggData pos = i.next();
-//			System.out.println("egg and basket pos " + pos.eggPos + " " + basket.basketPos);
-			if(pos.eggPos >= 95 && (basket.basketPos >= 45 && basket.basketPos < 51)){
+			if(pos.eggPos >= 95 && (basket.basketPos >= 40 && basket.basketPos < 45)){
 				if(pos.eggType == true) {
-					System.out.println("caught egg and basket pos " + pos.eggPos + " " + basket.basketPos);
-					player.score = player.score + 5;
+					Player.getInstance().setScore(Player.getInstance().getScore() + 5);
+          SoundEffect.DINGDONG.play();
 				}
 				else {
-					player.score = player.score - 5;
-					
+					Player.getInstance().setLivesRemaining(Player.getInstance().getLivesRemaining() - 1);
 				}
 				i.remove();
 			}
 		}
 		for(Iterator<EggData> i = eggs.get(2).iterator(); i.hasNext();) {
 			EggData pos = i.next();
-//			System.out.println(pos.eggPos + " " + basket.basketPos);
 			if(pos.eggPos >= 95 && (basket.basketPos >= 75 && basket.basketPos < 81)){
 				if(pos.eggType == true) {
-					System.out.println("caught egg and basket pos " + pos.eggPos + " " + basket.basketPos);
-					player.score = player.score + 5;
-//					System.out.println("Caught inside if" + pos.eggPos + " " + basket.basketPos);
+					Player.getInstance().setScore(Player.getInstance().getScore() + 5);
+          SoundEffect.DINGDONG.play();
 				}
 				else {
-					player.score = player.score - 5;
-					
+					Player.getInstance().setLivesRemaining(Player.getInstance().getLivesRemaining() - 1);
 				}
 				i.remove();
 			}
@@ -163,21 +116,17 @@ public class BoardStatus {
 			for(Iterator<EggData> i = a.iterator(); i.hasNext();) {
 				EggData pos = i.next();
 				if(pos.eggPos >= 100) {
-					System.out.println("Missed");
 					if(pos.eggType == true) {
-						player.livesRemaining--;
+						Player.getInstance().setLivesRemaining(Player.getInstance().getLivesRemaining() - 1);
 					}
 					i.remove();
 				}
 			}
 		}
 	}
-
-
 	
 	void updateBoardStatus(int keyPressStatus){
 		moveBasket(keyPressStatus);
-//		decideNextEggFallingTime();
 		for(int i = 0; i < nextEggFallTime.size(); i++) {
 			nextEggFallTime.set(i, nextEggFallTime.get(i) - time);
 		}
@@ -185,20 +134,10 @@ public class BoardStatus {
 		checkIfTimeToReleaseEgg();
 		checkEggCaught();
 		checkEggMissed();
-//		printEggs();
-
-		
 	}
 	
 	void printEggs() {
 		System.out.println(nextEggFallTime);
-//		for(ArrayList<EggData> a: eggs) {
-//			for(EggData b: a) {
-//				System.out.println(b.eggPos);
-//			}
-//		}
 		System.out.println("\n");
-		
 	}
-
 }
